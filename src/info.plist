@@ -204,7 +204,9 @@ function run(args) {
 		</dict>
 	</array>
 	<key>readme</key>
-	<string></string>
+	<string>Workflow to automatically pause audio/video playing.
+
+In order to pause audio/video in Google Chrome or Brave Browser, you must enable JavaScript from Apple Events: In the top menu click "View" -&gt; "Developer" -&gt; "Allow JavaScript from Apple Events".</string>
 	<key>uidata</key>
 	<dict>
 		<key>14C39DFC-3D98-43F1-95AA-680B86383399</key>
@@ -222,9 +224,11 @@ function run(args) {
 			<integer>60</integer>
 		</dict>
 	</dict>
+	<key>variablesdontexport</key>
+	<array/>
 	<key>version</key>
 	<string>1.0.0</string>
 	<key>webaddress</key>
-	<string></string>
+	<string>https://github.com/epilande/alfred-be-quiet</string>
 </dict>
 </plist>
