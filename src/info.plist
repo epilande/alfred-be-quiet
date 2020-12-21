@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>com.epilande.be-quiet</string>
+	<key>category</key>
+	<string>Tools</string>
+	<key>connections</key>
+	<dict>
+		<key>14C39DFC-3D98-43F1-95AA-680B86383399</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>7BBADF8E-762A-4EE6-B537-F4CFC0DD7B97</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>Emmanuel Pilande</string>
+	<key>description</key>
+	<string>Workflow to automatically pause audio/video playing</string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>Be Quiet</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<true/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>68</integer>
+				<key>keyword</key>
+				<string>bq</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string></string>
+				<key>script</key>
+				<string>#!/usr/bin/env osascript -l JavaScript
+
+function run(args) {
+  let apps = [];
+
+  if (Application("Google Chrome").running()) {
+    apps.push("Google Chrome");
+  }
+  if (Application("Brave Browser").running()) {
+    apps.push("Brave Browser");
+  }
+  if (Application("Spotify").running()) {
+    apps.push("Spotify");
+  }
+  if (Application("Music").running()) {
+    apps.push("Music");
+  }
+
+  let items = apps.reduce((acc, app) =&gt; {
+    acc.push({
+      title: `Be Quiet - ${app}`,
+      subtitle: `Pause video/audio playing in ${app}`,
+      arg: app,
+    });
+    return acc;
+  }, []);
+
+  const allItem = {
+    title: "Be Quiet - All",
+    subtitle: `Pause all (${apps.join(", ")})`,
+    arg: apps,
+  };
+
+  return JSON.stringify({ items: [allItem, ...items] });
+}
+</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string></string>
+				<key>title</key>
+				<string></string>
+				<key>type</key>
+				<integer>7</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>14C39DFC-3D98-43F1-95AA-680B86383399</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>68</integer>
+				<key>script</key>
+				<string>#!/usr/bin/env osascript -l JavaScript
+ObjC.import("stdlib");
+
+// let ALLOWED_URLS = [
+//   "youtube",
+//   "soundcloud",
+//   "reddit",
+//   ...$.getenv("urls").split(/,\s?/).filter(Boolean),
+// ];
+
+function pause(app) {
+  if (["Google Chrome", "Brave Browser"].includes(app)) {
+    let urlRegex = /^(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&amp;\/\/=]*)/;
+    let browser = Application(app);
+    browser.includeStandardAdditions = true;
+    let windowCount = browser.windows.length;
+    let tabsUrl = browser.windows.tabs.url();
+
+    for (let w = 0; w &lt; windowCount; w++) {
+      let window = browser.windows[w]();
+      if (window) {
+        for (let t = 0; t &lt; tabsUrl[w].length; t++) {
+          let tab = window.tabs[t]();
+          let url = tabsUrl[w][t];
+
+          if (urlRegex.test(url)) {
+            tab.url = `
+                  javascript:(function () {
+                    let videoElements = document.getElementsByTagName("video");
+                    let audioElements = document.getElementsByTagName("audio");
+                    let soundcloudPause = document.querySelector('[title="Pause current"]');
+                  
+                    if (videoElements.length &gt; 0) {
+                      for (const element of videoElements) {
+                        element.pause();
+                      }
+                    }
+                    if (audioElements.length &gt; 0) {
+                      for (const element of audioElements) {
+                        element.pause();
+                      }
+                    }
+                    if (soundcloudPause) {
+                      soundcloudPause.click();
+                    }
+                  })();
+                `;
+          }
+        }
+      }
+    }
+  }
+
+  if (app === "Spotify") {
+    let spotify = Application("Spotify");
+    spotify.pause();
+  }
+
+  if (app === "Music") {
+    let music = Application("Music");
+    music.pause();
+  }
+}
+
+function run(args) {
+  let apps = args;
+
+  for (const app of apps) {
+    pause(app);
+  }
+}</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>7</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>7BBADF8E-762A-4EE6-B537-F4CFC0DD7B97</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string></string>
+	<key>uidata</key>
+	<dict>
+		<key>14C39DFC-3D98-43F1-95AA-680B86383399</key>
+		<dict>
+			<key>xpos</key>
+			<integer>70</integer>
+			<key>ypos</key>
+			<integer>60</integer>
+		</dict>
+		<key>7BBADF8E-762A-4EE6-B537-F4CFC0DD7B97</key>
+		<dict>
+			<key>xpos</key>
+			<integer>345</integer>
+			<key>ypos</key>
+			<integer>60</integer>
+		</dict>
+	</dict>
+	<key>variables</key>
+	<dict>
+		<key>urls</key>
+		<string>youtube, soundcloud</string>
+	</dict>
+	<key>version</key>
+	<string>1.0.0</string>
+	<key>webaddress</key>
+	<string></string>
+</dict>
+</plist>
