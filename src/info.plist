@@ -147,20 +147,32 @@ function pause(app) {
               javascript:(function () {
                 let videoElements = document.getElementsByTagName("video");
                 let audioElements = document.getElementsByTagName("audio");
-                let soundcloudPause = document.querySelector('[title="Pause current"]');
+                let pauseElements = document.querySelectorAll('button[title^="Pause"]');
+                let iframeElements =  document.querySelectorAll('iframe');
 
                 if (videoElements.length &gt; 0) {
                   for (const element of videoElements) {
                     element.pause();
                   }
                 }
+
                 if (audioElements.length &gt; 0) {
                   for (const element of audioElements) {
                     element.pause();
                   }
                 }
-                if (soundcloudPause) {
-                  soundcloudPause.click();
+
+                if (pauseElements.length &gt; 0) {
+                  for (const element of pauseElements) {
+                    element.click();
+                  }
+                }
+
+                if (iframeElements.length &gt; 0) {
+                  for (const element of iframeElements) {
+                    element.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                    element.contentWindow.postMessage('{"method":"pause"}', '*');
+                  }
                 }
               })();
             `;
@@ -227,7 +239,7 @@ In order to pause audio/video in Google Chrome or Brave Browser, you must enable
 	<key>variablesdontexport</key>
 	<array/>
 	<key>version</key>
-	<string>1.0.0</string>
+	<string>1.0.1</string>
 	<key>webaddress</key>
 	<string>https://github.com/epilande/alfred-be-quiet</string>
 </dict>
