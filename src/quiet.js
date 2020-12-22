@@ -21,20 +21,32 @@ function pause(app) {
               javascript:(function () {
                 let videoElements = document.getElementsByTagName("video");
                 let audioElements = document.getElementsByTagName("audio");
-                let soundcloudPause = document.querySelector('[title="Pause current"]');
+                let pauseElements = document.querySelectorAll('button[title^="Pause"]');
+                let iframeElements =  document.querySelectorAll('iframe');
 
                 if (videoElements.length > 0) {
                   for (const element of videoElements) {
                     element.pause();
                   }
                 }
+
                 if (audioElements.length > 0) {
                   for (const element of audioElements) {
                     element.pause();
                   }
                 }
-                if (soundcloudPause) {
-                  soundcloudPause.click();
+
+                if (pauseElements.length > 0) {
+                  for (const element of pauseElements) {
+                    element.click();
+                  }
+                }
+
+                if (iframeElements.length > 0) {
+                  for (const element of iframeElements) {
+                    element.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                    element.contentWindow.postMessage('{"method":"pause"}', '*');
+                  }
                 }
               })();
             `;
